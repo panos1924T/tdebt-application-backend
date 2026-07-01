@@ -20,6 +20,8 @@ public class Capability {
     @Column(unique = true, nullable = false)
     private String name;
 
+    private String description;
+
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.PROTECTED)
     @ManyToMany(mappedBy = "capabilities", fetch = FetchType.LAZY)
