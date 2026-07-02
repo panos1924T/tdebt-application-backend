@@ -24,3 +24,10 @@ spring:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
       expiration: ${JWT_EXPIRATION}
+
+  admin:
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+
+  allowed:
+    origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}

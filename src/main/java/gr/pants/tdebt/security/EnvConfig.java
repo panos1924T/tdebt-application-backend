@@ -11,7 +11,7 @@ public class EnvConfig {
                 .load();
 
         dotenv.entries().forEach(entry ->
-            System.setProperty(entry.getKey(), entry.getValue())
+                System.setProperty(entry.getKey(), entry.getValue())
         );
     }
 }

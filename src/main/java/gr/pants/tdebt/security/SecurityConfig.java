@@ -37,7 +37,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ObjectMapper objectMapper;
 
-    @Value("${allowed.origins}")
+    @Value("${spring.allowed.origins}")
     private List<String> allowedOrigins;
 
     @Value("12")
