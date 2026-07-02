@@ -1,7 +1,7 @@
 package gr.pants.tdebt.model;
 
-import gr.pants.tdebt.core.DebtStatus;
-import gr.pants.tdebt.core.DebtType;
+import gr.pants.tdebt.core.enums.DebtStatus;
+import gr.pants.tdebt.core.enums.DebtType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

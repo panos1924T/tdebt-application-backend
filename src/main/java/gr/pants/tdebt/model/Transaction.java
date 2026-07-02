@@ -1,6 +1,6 @@
 package gr.pants.tdebt.model;
 
-import gr.pants.tdebt.core.TransactionAction;
+import gr.pants.tdebt.core.enums.TransactionAction;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
