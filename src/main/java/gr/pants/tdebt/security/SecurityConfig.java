@@ -48,6 +48,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder(bCryptStrength);
     }
 
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,
                                                    AuthenticationProvider authenticationProvider,
                                                    CorsConfigurationSource corsConfigurationSource)
