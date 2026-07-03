@@ -106,6 +106,18 @@ public class ErrorHandler {
                 ));
     }
 
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handlePasswordMismatch(PasswordMismatchException e) {
+        log.warn("Password mismatch. message={}", e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(new ErrorResponseDTO(
+                        e.getErrorCode(),
+                        e.getMessage()
+                ));
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponseDTO> handleUnauthorized(UnauthorizedException e, WebRequest request) {
         log.warn("Authorization failed for URI={}. Message={}", request.getDescription(false), e.getMessage()); // uri=/api/user/...
