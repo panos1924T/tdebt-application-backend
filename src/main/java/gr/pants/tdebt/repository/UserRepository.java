@@ -4,6 +4,7 @@ import gr.pants.tdebt.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -11,5 +12,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findUserByEmail(String email);
 
+    Optional<User> findUserByUuidAndDeletedFalse(UUID uuid);
+
+    Optional<User> findUserByUuid(UUID uuid);
+
     boolean existsUserByRole(String name);
+
+    boolean existsUserByEmail(String email);
+
+    boolean existsUserByEmailAndUuidNot(String email, UUID uuid);
 }

@@ -12,7 +12,7 @@ public interface IUserService {
 
     UserReadOnlyDTO saveUser(UserInsertDTO insertDTO);
 
-    UserReadOnlyDTO updateUser(UserUpdateDTO updateDTO);
+    UserReadOnlyDTO updateUser(UUID uuid, UserUpdateDTO updateDTO);
 
     void deleteUser(UUID uuid);
 
