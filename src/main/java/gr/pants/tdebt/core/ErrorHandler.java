@@ -1,5 +1,6 @@
-package gr.pants.tdebt.core.exceptions;
+package gr.pants.tdebt.core;
 
+import gr.pants.tdebt.core.exceptions.*;
 import gr.pants.tdebt.dto.ErrorResponseDTO;
 import gr.pants.tdebt.dto.ValidationErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
