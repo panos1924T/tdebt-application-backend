@@ -50,6 +50,7 @@ public class UserServiceImpl implements IUserService {
                 .orElseThrow(() -> new EntityNotFoundException("Role", "Role=ROLE_USER was not found"));
         user.setRole(role);
 
+        log.info("User with email={} saved successfully.", insertDTO.email());
         return userMapper.toReadOnlyDTO(user);
     }
 
@@ -71,6 +72,7 @@ public class UserServiceImpl implements IUserService {
         user.setEmail(updateDTO.email());
         user.setPassword(passwordEncoder.encode(updateDTO.password()));
 
+        log.info("User with uuid={} updated successfully", uuid);
         return userMapper.toReadOnlyDTO(user);
     }
 
@@ -78,13 +80,14 @@ public class UserServiceImpl implements IUserService {
             "hasAuthority('DELETE_ONLY_USER') and #uuid == authentication.principal.uuid")
     @Transactional
     @Override
-    public void deleteUser(UUID uuid) {
+    public UserReadOnlyDTO deleteUser(UUID uuid) {
 
         User user = userRepository.findUserByUuidAndDeletedFalse(uuid)
                 .orElseThrow(() -> new EntityNotFoundException("User", "User with uuid=" + uuid + " not found"));
 
         user.softDelete(Instant.now());
-        userRepository.save(user);
+        log.info("User with uuid={} deleted successfully", uuid);
+        return userMapper.toReadOnlyDTO(user);
     }
 
     @PreAuthorize("hasAuthority('VIEW_USERS')")
@@ -95,6 +98,7 @@ public class UserServiceImpl implements IUserService {
         User user = userRepository.findUserByUuid(uuid)
                 .orElseThrow(() -> new EntityNotFoundException("User", "User with uuid=" + uuid + " not found"));
 
+        log.info("Get user by uuid={} returned successfully", uuid);
         return userMapper.toReadOnlyDTO(user);
     }
 
@@ -106,6 +110,7 @@ public class UserServiceImpl implements IUserService {
         User user = userRepository.findUserByUuidAndDeletedFalse(uuid)
                 .orElseThrow(() -> new EntityNotFoundException("User", "User with uuid=" + uuid + " not found"));
 
+        log.debug("Get non-deleted user by uuid={} returned successfully", uuid);
         return userMapper.toReadOnlyDTO(user);
     }
 
@@ -115,8 +120,8 @@ public class UserServiceImpl implements IUserService {
     public Page<UserReadOnlyDTO> getAllUsers(Pageable pageable) {
 
         Page<User> userPage = userRepository.findAll(pageable);
-        log.debug("Get paginated returned successfully page={} and size={}", userPage.getNumber(), userPage.getSize());
 
+        log.info("Get paginated returned successfully page={} and size={}", userPage.getNumber(), userPage.getSize());
         return userPage.map(userMapper::toReadOnlyDTO);
     }
 
@@ -126,8 +131,8 @@ public class UserServiceImpl implements IUserService {
     public Page<UserReadOnlyDTO> getAllUsersDeletedFalse(Pageable pageable) {
 
         Page<User> userPage = userRepository.findAllByDeletedFalse(pageable);
-        log.debug("Get paginated returned successfully page={} and size={}", userPage.getNumber(), userPage.getSize());
 
+        log.info("Get paginated not deleted returned successfully page={} and size={}", userPage.getNumber(), userPage.getSize());
         return userPage.map(userMapper::toReadOnlyDTO);
     }
 
