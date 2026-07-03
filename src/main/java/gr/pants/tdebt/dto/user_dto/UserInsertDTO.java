@@ -16,6 +16,6 @@ public record UserInsertDTO(
         String password,
 
         @NotNull
-        String confirmPassword      //TODO CREATE CONFIRM_PASSWORD_VALIDATOR FOR API
+        String confirmPassword
 ) {
 }

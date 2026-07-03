@@ -46,12 +46,13 @@ public class UserServiceImpl implements IUserService {
 
         String hashedPassword = passwordEncoder.encode(insertDTO.password());
         User user = userMapper.toEntity(insertDTO, hashedPassword);
-        Role role = roleRepository.findRoleByName("ROLE_USER")
-                .orElseThrow(() -> new EntityNotFoundException("Role", "Role=ROLE_USER was not found"));
+        Role role = roleRepository.findRoleByName("USER")
+                .orElseThrow(() -> new EntityNotFoundException("Role", "Role=USER was not found"));
         user.setRole(role);
+        User savedUser = userRepository.save(user);
 
         log.info("User with email={} saved successfully.", insertDTO.email());
-        return userMapper.toReadOnlyDTO(user);
+        return userMapper.toReadOnlyDTO(savedUser);
     }
 
     @PreAuthorize("hasAuthority('EDIT_ONLY_USER') and #uuid == authentication.principal.uuid")

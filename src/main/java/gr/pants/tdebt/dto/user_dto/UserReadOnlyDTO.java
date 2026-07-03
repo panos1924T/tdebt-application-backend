@@ -8,8 +8,6 @@ public record UserReadOnlyDTO(
 
         String email,
 
-        boolean deleted,
-
         Instant createdAt,
 
         Instant updatedAt
