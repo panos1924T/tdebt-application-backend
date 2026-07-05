@@ -106,6 +106,18 @@ public class ErrorHandler {
                 ));
     }
 
+    @ExceptionHandler(NegativeAmountException.class)
+    public ResponseEntity<ErrorResponseDTO> handleNegativeAmount(NegativeAmountException e) {
+        log.warn("Negative or ZERO amount. message={}", e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(new ErrorResponseDTO(
+                        e.getErrorCode(),
+                        e.getMessage()
+                ));
+    }
+
     @ExceptionHandler(DebtHasTransactionsException.class)
     public ResponseEntity<ErrorResponseDTO> handleHasTransactions(DebtHasTransactionsException e) {
         log.warn("Cannot delete Debt with existing transactions. message={}", e.getMessage());
