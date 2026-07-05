@@ -109,6 +109,7 @@ public class DebtServiceImpl implements IDebtService {
 
         Debt debt = getDebtAndVerifyOwnership(debtUuid, userUuid);
 
+        log.info("Debt with uuid={}, returned successfully", debtUuid);
         return debtMapper.toReadOnlyDTO(debt);
     }
 

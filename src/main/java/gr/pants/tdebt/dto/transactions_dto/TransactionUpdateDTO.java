@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
-public record TransactionEditDTO(
+public record TransactionUpdateDTO(
 
         @NotNull
         LocalDate date,
