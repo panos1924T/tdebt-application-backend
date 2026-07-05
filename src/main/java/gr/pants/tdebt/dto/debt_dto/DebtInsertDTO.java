@@ -16,15 +16,6 @@ public record DebtInsertDTO(
         @NotNull
         DebtType debtType,
 
-        BigDecimal balance,
-
         String description
 ) {
-
-    public DebtInsertDTO {
-        if (balance == null) {
-            balance = BigDecimal.ZERO;
-        }
-    }
-
 }
