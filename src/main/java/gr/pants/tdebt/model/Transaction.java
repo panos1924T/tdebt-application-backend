@@ -31,4 +31,8 @@ public class Transaction extends AbstractAuditEntity{
     private TransactionAction action;
 
     private String note;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "corrected_transaction_id")
+    private Transaction correctedTransaction;
 }

@@ -18,6 +18,8 @@ public record TransactionReadOnlyDTO(
 
         String note,
 
+        String correctedTransactionUuid,
+
         Instant createdAt
 ) {
 }

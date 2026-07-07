@@ -15,6 +15,7 @@ public class TransactionMapper {
                 transaction.getAmount(),
                 transaction.getAction().toString(),
                 transaction.getNote(),
+                transaction.getCorrectedTransaction().getUuid().toString(),
                 transaction.getCreatedAt()
         );
     }

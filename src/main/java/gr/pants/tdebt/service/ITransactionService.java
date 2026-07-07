@@ -4,7 +4,6 @@ import gr.pants.tdebt.core.filters.TransactionFilters;
 import gr.pants.tdebt.dto.transactions_dto.TransactionInsertDTO;
 import gr.pants.tdebt.dto.transactions_dto.TransactionReadOnlyDTO;
 import gr.pants.tdebt.dto.transactions_dto.TransactionUpdateDTO;
-import gr.pants.tdebt.model.Transaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,7 +16,7 @@ public interface ITransactionService {
     );
 
     TransactionReadOnlyDTO updateTransaction(
-            UUID transUuid, TransactionUpdateDTO updateDTO, UUID userUuid
+            UUID debtUuid, TransactionUpdateDTO updateDTO, UUID userUuid
     );
 
     TransactionReadOnlyDTO getTransactionByUuid(UUID transUuid, UUID userUuid);

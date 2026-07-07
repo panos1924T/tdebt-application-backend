@@ -72,17 +72,65 @@ public class TransactionServiceImpl implements ITransactionService {
 
     @Override
     @Transactional
-    public TransactionReadOnlyDTO updateTransaction(UUID transUuid, TransactionUpdateDTO updateDTO, UUID userUuid) {
+    public TransactionReadOnlyDTO updateTransaction(UUID debtUuid, TransactionUpdateDTO updateDTO, UUID userUuid) {
 
-        Transaction transaction = getTransactionAndVerifyOwnership(transUuid, userUuid);
+        // 1. Έλεγχος Debt (Ownership & Archive status)
+        Debt debt = debtRepository.findByUuidAndUser_UuidAndDeletedFalse(debtUuid, userUuid)
+                .orElseThrow(() -> new EntityNotFoundException("Debt", "Debt with uuid=" + debtUuid + " not found"));
 
-        transaction.setDate(updateDTO.date());
-        transaction.setNote(updateDTO.note());
+        if (debt.getStatus() == DebtStatus.ARCHIVED) {
+            throw new InvalidArgumentException("Debt", "Cannot add corrections to an archived debt");
+        }
 
-        Transaction updatedTransaction = transactionRepository.save(transaction);
-        log.info("Updated metadata for Transaction with UUID: {}", transUuid);
+        // 2. Έλεγχος Original Transaction (Ownership στο ίδιο Debt)
+        Transaction original = transactionRepository
+                .findByUuidAndDebt_Uuid(updateDTO.correctedTransactionUuid(), debtUuid)
+                .orElseThrow(() -> new EntityNotFoundException("Transaction",
+                        "Original transaction with uuid=" + updateDTO.correctedTransactionUuid() + " not found on this debt"));
 
-        return transactionMapper.toReadOnlyDTO(updatedTransaction);
+        // 3. Anti-Chaining Rule: Απαγόρευση πολλαπλών διορθώσεων στην ίδια αρχική κίνηση
+        if (transactionRepository.existsByCorrectedTransaction_Id(original.getId())) {
+            throw new InvalidArgumentException("Transaction",
+                    "This transaction has already been corrected. Please correct the latest correction instead.");
+        }
+
+        // 4. Υπολογισμός νέου Balance (Με χρήση Delta)
+        BigDecimal resultingBalance;
+        if (updateDTO.action() == TransactionAction.INCREASE) {
+            resultingBalance = debt.getBalance().add(updateDTO.amount());
+        } else {
+            resultingBalance = debt.getBalance().subtract(updateDTO.amount());
+        }
+
+        // 5. Bounded Negative Guard (Ο Έξυπνος Φρουρός)
+        // Επιτρέπουμε το αρνητικό balance, ΑΛΛΑ η ζημιά δεν μπορεί να υπερβαίνει την αξία της αρχικής κίνησης.
+        if (resultingBalance.compareTo(BigDecimal.ZERO) < 0) {
+            BigDecimal maxAllowedNegative = original.getAmount();
+
+            if (resultingBalance.abs().compareTo(maxAllowedNegative) > 0) {
+                throw new InsufficientBalanceException("Transaction","Correction would result in a negative balance (-"
+                        + resultingBalance.abs() + ") that exceeds the original transaction's magnitude ("
+                        + maxAllowedNegative + "). This correction is mathematically invalid.");
+            }
+        }
+
+        // 6. Δημιουργία και Αποθήκευση της Διόρθωσης
+        Transaction correction = new Transaction();
+        correction.setDate(updateDTO.date());
+        correction.setAmount(updateDTO.amount());
+        correction.setAction(updateDTO.action());
+        correction.setNote(updateDTO.note());
+        correction.setCorrectedTransaction(original);
+        correction.setDebt(debt);
+
+        debt.setBalance(resultingBalance);
+
+        debtRepository.save(debt);
+        Transaction saved = transactionRepository.save(correction);
+
+        log.info("Correction UUID: {} applied to Original UUID: {}. New Balance: {}",
+                saved.getUuid(), original.getUuid(), debt.getBalance());
+        return transactionMapper.toReadOnlyDTO(saved);
     }
 
     @Override

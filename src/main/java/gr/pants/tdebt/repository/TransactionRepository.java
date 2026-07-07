@@ -10,7 +10,11 @@ import java.util.UUID;
 public interface TransactionRepository
         extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
 
-    boolean existsByDebt_Uuid(UUID debtUuid);
+    Optional<Transaction> findByUuidAndDebt_Uuid(UUID uuid, UUID debtUuid);
 
     Optional<Transaction> findTransactionByUuidAndDebt_User_UuidAndDebt_DeletedFalse(UUID transactionUuid, UUID userUuid);
+
+    boolean existsByDebt_Uuid(UUID debtUuid);
+
+    boolean existsByCorrectedTransaction_Id(Long originalTransactionId);
 }
