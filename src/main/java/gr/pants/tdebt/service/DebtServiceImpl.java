@@ -49,7 +49,7 @@ public class DebtServiceImpl implements IDebtService {
         debt.setBalance(BigDecimal.ZERO);
 
         Debt savedDebt = debtRepository.save(debt);
-        log.info("Created new Debt with UUID: {} for User: {}", savedDebt.getUuid(), userUuid);
+        log.info("Created new Debt with UUID: {} for User with UUID: {}", savedDebt.getUuid(), userUuid);
 
         return debtMapper.toReadOnlyDTO(savedDebt);
     }
@@ -64,14 +64,14 @@ public class DebtServiceImpl implements IDebtService {
         debt.setDescription(updateDTO.description());
 
         Debt updatedDebt = debtRepository.save(debt);
-        log.info("Updated Debt UUID: {} by User: {}", debtUuid, userUuid);
+        log.info("Updated Debt with UUID: {}", debtUuid);
 
         return debtMapper.toReadOnlyDTO(updatedDebt);
     }
 
     @Override
     @Transactional
-    public void deleteDebt(UUID debtUuid, UUID userUuid) {
+    public DebtReadOnlyDTO deleteDebt(UUID debtUuid, UUID userUuid) {
 
         Debt debt = getDebtAndVerifyOwnership(debtUuid, userUuid);
 
@@ -82,7 +82,9 @@ public class DebtServiceImpl implements IDebtService {
         debt.softDelete(Instant.now());
 
         Debt deletedDebt = debtRepository.save(debt);
-        log.info("Deleted Debt UUID: {} by User: {}", debtUuid, userUuid);
+
+        log.info("Deleted Debt with UUID: {}", debtUuid);
+        return debtMapper.toReadOnlyDTO(deletedDebt);
     }
 
     @Override
@@ -98,7 +100,7 @@ public class DebtServiceImpl implements IDebtService {
         }
 
         Debt savedDebt = debtRepository.save(debt);
-        log.info("Toggled status to {} for Debt UUID: {}", savedDebt.getStatus(), debtUuid);
+        log.info("Toggled status to {} for Debt with UUID: {}", savedDebt.getStatus(), debtUuid);
 
         return debtMapper.toReadOnlyDTO(savedDebt);
     }
@@ -109,7 +111,7 @@ public class DebtServiceImpl implements IDebtService {
 
         Debt debt = getDebtAndVerifyOwnership(debtUuid, userUuid);
 
-        log.info("Debt with uuid={}, returned successfully", debtUuid);
+        log.info("Debt with UUID={}, returned successfully", debtUuid);
         return debtMapper.toReadOnlyDTO(debt);
     }
 
@@ -128,6 +130,6 @@ public class DebtServiceImpl implements IDebtService {
 
     private Debt getDebtAndVerifyOwnership(UUID debtUuid, UUID userUuid) {
         return debtRepository.findByUuidAndUser_UuidAndDeletedFalse(debtUuid, userUuid)
-                .orElseThrow(() -> new EntityNotFoundException("Debt", "Debt with uuid=" + debtUuid + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Debt", "Debt with UUID=" + debtUuid + " not found"));
     }
 }
