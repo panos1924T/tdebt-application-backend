@@ -12,7 +12,7 @@ public record TransactionUpdateDTO(
 
 
         @NotNull
-        UUID correctedTransactionUuid,
+        UUID transactionUuid,
 
         @NotNull
         LocalDate date,

@@ -16,12 +16,16 @@ public interface ITransactionService {
     );
 
     TransactionReadOnlyDTO updateTransaction(
-            UUID debtUuid, TransactionUpdateDTO updateDTO, UUID userUuid
+            UUID debtUuid, UUID transUuid, TransactionUpdateDTO updateDTO, UUID userUuid
     );
 
     TransactionReadOnlyDTO getTransactionByUuid(UUID transUuid, UUID userUuid);
 
-    Page<TransactionReadOnlyDTO> getPaginatedFilteredTransactions(
+    Page<TransactionReadOnlyDTO> getPaginatedFilteredDebtTransactions(
             UUID debtUuid, TransactionFilters filters, Pageable pageable, UUID userUuid
+    );
+
+    Page<TransactionReadOnlyDTO> getPaginatedTransactions(
+            Pageable pageable, UUID userUuid
     );
 }

@@ -72,7 +72,7 @@ public class TransactionServiceImpl implements ITransactionService {
 
     @Override
     @Transactional
-    public TransactionReadOnlyDTO updateTransaction(UUID debtUuid, TransactionUpdateDTO updateDTO, UUID userUuid) {
+    public TransactionReadOnlyDTO updateTransaction(UUID debtUuid, UUID transUuid, TransactionUpdateDTO updateDTO, UUID userUuid) {
 
         Debt debt = debtRepository.findByUuidAndUser_UuidAndDeletedFalse(debtUuid, userUuid)
                 .orElseThrow(() -> new EntityNotFoundException("Debt", "Debt with uuid=" + debtUuid + " not found"));
@@ -82,9 +82,9 @@ public class TransactionServiceImpl implements ITransactionService {
         }
 
         Transaction original = transactionRepository
-                .findByUuidAndDebt_Uuid(updateDTO.correctedTransactionUuid(), debtUuid)
+                .findByUuidAndDebt_Uuid(transUuid, debtUuid)
                 .orElseThrow(() -> new EntityNotFoundException("Transaction",
-                        "Original transaction with uuid=" + updateDTO.correctedTransactionUuid() + " not found on this debt"));
+                        "Original transaction with uuid=" + transUuid + " not found on this debt"));
 
         // Calculating Delta (new contribution - original contribution) that matches every scenario.
         BigDecimal originalContribution = original.getAction() == TransactionAction.INCREASE
@@ -139,7 +139,7 @@ public class TransactionServiceImpl implements ITransactionService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TransactionReadOnlyDTO> getPaginatedFilteredTransactions(UUID debtUuid, TransactionFilters filters, Pageable pageable, UUID userUuid) {
+    public Page<TransactionReadOnlyDTO> getPaginatedFilteredDebtTransactions(UUID debtUuid, TransactionFilters filters, Pageable pageable, UUID userUuid) {
 
         Debt debt = debtRepository.findByUuidAndUser_UuidAndDeletedFalse(debtUuid, userUuid)
                 .orElseThrow(() -> new EntityNotFoundException("Debt", "Debt with uuid=" + debtUuid + " not found"));
@@ -150,6 +150,17 @@ public class TransactionServiceImpl implements ITransactionService {
                 pageable.getPageSize());
         return transactionRepository.findAll(specification, pageable)
                 .map(transactionMapper::toReadOnlyDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TransactionReadOnlyDTO> getPaginatedTransactions(Pageable pageable, UUID userUuid) {
+
+        Page<Transaction> transactionsPage = transactionRepository.findAllByDebtUserUuid(userUuid, pageable);
+
+        log.info("Paginated Transactions were returned successfully with page={} and size={}", pageable.getPageNumber(),
+                pageable.getPageSize());
+        return transactionsPage.map(transactionMapper::toReadOnlyDTO);
     }
 
     private Transaction getTransactionAndVerifyOwnership(UUID transactionUuid, UUID userUuid) {
