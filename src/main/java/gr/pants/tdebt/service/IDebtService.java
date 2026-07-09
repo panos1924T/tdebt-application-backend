@@ -16,7 +16,7 @@ public interface IDebtService {
 
     DebtReadOnlyDTO updateDebt(DebtUpdateDTO updateDTO, UUID debtUuid, UUID userUuid);
 
-    void deleteDebt(UUID debtUuid, UUID userUuid);
+    DebtReadOnlyDTO deleteDebt(UUID debtUuid, UUID userUuid);
 
     DebtReadOnlyDTO toggleStatus(UUID debtUuid, UUID userUuid);
 
