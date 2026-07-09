@@ -55,7 +55,7 @@ public class TransactionServiceImpl implements ITransactionService {
             debt.setBalance(debt.getBalance().add(amount));
         } else {
             if (amount.compareTo(debt.getBalance()) > 0) {
-                throw new InsufficientBalanceException("Transaction", "Cannot decrease balance below zero. Current balance is: " + debt.getBalance());
+                log.warn("Debt's balance is going to be negative! Balance after transaction={}", debt.getBalance().subtract(amount));
             }
             debt.setBalance(debt.getBalance().subtract(amount));
         }

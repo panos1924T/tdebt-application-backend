@@ -3,6 +3,7 @@ package gr.pants.tdebt.service;
 import gr.pants.tdebt.core.enums.DebtStatus;
 import gr.pants.tdebt.core.exceptions.DebtHasTransactionsException;
 import gr.pants.tdebt.core.exceptions.EntityNotFoundException;
+import gr.pants.tdebt.core.exceptions.InvalidArgumentException;
 import gr.pants.tdebt.core.filters.DebtFilters;
 import gr.pants.tdebt.dto.debt_dto.DebtInsertDTO;
 import gr.pants.tdebt.dto.debt_dto.DebtReadOnlyDTO;
@@ -59,6 +60,10 @@ public class DebtServiceImpl implements IDebtService {
     public DebtReadOnlyDTO updateDebt(DebtUpdateDTO updateDTO, UUID debtUuid, UUID userUuid) {
 
         Debt debt = getDebtAndVerifyOwnership(debtUuid, userUuid);
+
+        if (debt.getStatus() == DebtStatus.ARCHIVED) {
+            throw new InvalidArgumentException("Debt", "Cannot modify transactions on an archived debt");
+        }
 
         debt.setDebtorName(updateDTO.debtorName());
         debt.setDescription(updateDTO.description());
