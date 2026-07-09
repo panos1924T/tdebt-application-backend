@@ -18,6 +18,8 @@ public record TransactionReadOnlyDTO(
 
         String note,
 
+        String debtorName,
+
         String correctedTransactionUuid,
 
         Instant createdAt

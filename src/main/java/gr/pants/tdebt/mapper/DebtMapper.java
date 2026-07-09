@@ -25,7 +25,6 @@ public class DebtMapper {
         Debt debt = new Debt();
         debt.setDebtorName(insertDTO.debtorName());
         debt.setType(insertDTO.debtType());
-        debt.setBalance(insertDTO.balance());
         debt.setDescription(insertDTO.description());
 
         return debt;
