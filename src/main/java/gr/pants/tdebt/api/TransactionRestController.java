@@ -37,7 +37,6 @@ public class TransactionRestController {
             @AuthenticationPrincipal User principal
             ) {
 
-        //TODO insertValidator
         if (bindingResult.hasErrors()) {
             throw new ValidationException("Transaction", "Invalid Transaction data", bindingResult);
         }
@@ -64,7 +63,6 @@ public class TransactionRestController {
             @AuthenticationPrincipal User principal
             ) {
 
-        //TODO create trans update validator
         if (bindingResult.hasErrors()) {
             throw new ValidationException("Transaction", "Invalid Transaction data", bindingResult);
         }

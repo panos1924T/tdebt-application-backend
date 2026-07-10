@@ -36,7 +36,6 @@ public class DebtRestController {
             @AuthenticationPrincipal User principal
             ) {
 
-        //TODO insertValidator
         if (bindingResult.hasErrors()) {
             throw new ValidationException("Debt", "Invalid Debt data", bindingResult);
         }
@@ -62,7 +61,6 @@ public class DebtRestController {
             @AuthenticationPrincipal User principal
             ) {
 
-        //TODO update validator
         if (bindingResult.hasErrors()) {
             throw new ValidationException("Debt", "Invalid Debt data", bindingResult);
         }
