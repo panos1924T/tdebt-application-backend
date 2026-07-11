@@ -32,8 +32,8 @@ public class TransactionRestController {
     @PostMapping("/debts/{debtUuid}/transactions")
     public ResponseEntity<TransactionReadOnlyDTO> saveTransaction(
             @Valid @RequestBody TransactionInsertDTO insertDTO,
-            @PathVariable UUID debtUuid,
             BindingResult bindingResult,
+            @PathVariable UUID debtUuid,
             @AuthenticationPrincipal User principal
             ) {
 
