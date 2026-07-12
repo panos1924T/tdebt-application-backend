@@ -46,8 +46,8 @@ public class OpenApiConfig {
                                 .email("tsitsikaspan@gmail.com")
                                 .url("https://panos1924t.github.io/personal-cv/"))
                         .license(new License()
-                                .name("CC0 1.0 Universal")
-                                .url("https://creativecommons.org/publicdomain/zero/1.0")));
+                                .name("MIT License")
+                                .url("https://opensource.org/licenses/MIT")));
     }
 
     /*
