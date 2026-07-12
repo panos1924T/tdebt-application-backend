@@ -84,7 +84,7 @@ public class UserRestController {
     @GetMapping("/{uuid}")
     public ResponseEntity<UserReadOnlyDTO> getUserByUuid(
             @PathVariable UUID uuid,
-            @RequestParam boolean includeDeleted
+            @RequestParam(defaultValue = "false") boolean includeDeleted
     ) {
 
         UserReadOnlyDTO userReadOnlyDTO = includeDeleted ?
@@ -97,7 +97,7 @@ public class UserRestController {
 
     @GetMapping
     public ResponseEntity<Page<UserReadOnlyDTO>> getPaginatedUsers(
-            @RequestParam boolean includeDeleted,
+            @RequestParam(defaultValue = "false") boolean includeDeleted,
             @PageableDefault(size = 10, sort = "email") Pageable pageable
     ) {
 
