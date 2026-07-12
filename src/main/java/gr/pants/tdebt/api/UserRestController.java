@@ -7,6 +7,12 @@ import gr.pants.tdebt.dto.user_dto.UserUpdateDTO;
 import gr.pants.tdebt.service.IUserService;
 import gr.pants.tdebt.validators.UserInsertValidator;
 import gr.pants.tdebt.validators.UserUpdateValidator;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,6 +35,11 @@ public class UserRestController {
     private final UserInsertValidator insertValidator;
     private final UserUpdateValidator updateValidator;
 
+    @Operation(summary="Create a User", description="Creates a new User")
+    @ApiResponses({
+            @ApiResponse(responseCode="201", description="Created", content=@Content(schema=@Schema(implementation=UserReadOnlyDTO.class))),
+            @ApiResponse(responseCode="400", description="Validation error")
+    })
     @PostMapping
     public ResponseEntity<UserReadOnlyDTO> saveUser(
             @Valid @RequestBody UserInsertDTO userInsertDTO,
@@ -54,7 +65,14 @@ public class UserRestController {
     }
 
 
+    @Operation(summary="Update a User", description="Updates an existing User")
+    @ApiResponses({
+            @ApiResponse(responseCode="200", description="OK", content=@Content(schema=@Schema(implementation=UserReadOnlyDTO.class))),
+            @ApiResponse(responseCode="400", description="Validation error"),
+            @ApiResponse(responseCode="404", description="Not found")
+    })
     @PutMapping("/{uuid}")
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<UserReadOnlyDTO> updateUser(
             @PathVariable UUID uuid,
             @Valid @RequestBody UserUpdateDTO userUpdateDTO,
@@ -71,7 +89,13 @@ public class UserRestController {
     }
 
 
+    @Operation(summary="Delete a User", description="Deletes a User and returns the deleted state")
+    @ApiResponses({
+            @ApiResponse(responseCode="200", description="OK", content=@Content(schema=@Schema(implementation=UserReadOnlyDTO.class))),
+            @ApiResponse(responseCode="404", description="Not found")
+    })
     @DeleteMapping("/{uuid}")
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<UserReadOnlyDTO> deleteUser(
             @PathVariable UUID uuid
     ) {
@@ -81,7 +105,13 @@ public class UserRestController {
     }
 
 
+    @Operation(summary="Get a User", description="Returns a User by UUID")
+    @ApiResponses({
+            @ApiResponse(responseCode="200", description="OK", content=@Content(schema=@Schema(implementation=UserReadOnlyDTO.class))),
+            @ApiResponse(responseCode="404", description="Not found")
+    })
     @GetMapping("/{uuid}")
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<UserReadOnlyDTO> getUserByUuid(
             @PathVariable UUID uuid,
             @RequestParam(defaultValue = "false") boolean includeDeleted
@@ -95,7 +125,12 @@ public class UserRestController {
     }
 
 
+    @Operation(summary="List Users", description="Returns paginated Users")
+    @ApiResponses({
+            @ApiResponse(responseCode="200", description="OK", content=@Content(schema=@Schema(implementation=org.springframework.data.domain.Page.class)))
+    })
     @GetMapping
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<Page<UserReadOnlyDTO>> getPaginatedUsers(
             @RequestParam(defaultValue = "false") boolean includeDeleted,
             @PageableDefault(size = 10, sort = "email") Pageable pageable
