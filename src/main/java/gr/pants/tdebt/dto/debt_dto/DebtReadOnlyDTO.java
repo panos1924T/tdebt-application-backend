@@ -18,10 +18,6 @@ public record DebtReadOnlyDTO(
 
         String description,
 
-        DebtStatus debtStatus,
-
-        Instant createdAt,
-
-        Instant updatedAt
+        DebtStatus debtStatus
 ) {
 }

@@ -15,9 +15,7 @@ public class DebtMapper {
                 debt.getType(),
                 debt.getBalance(),
                 debt.getDescription(),
-                debt.getStatus(),
-                debt.getCreatedAt(),
-                debt.getUpdatedAt()
+                debt.getStatus()
         );
     }
 

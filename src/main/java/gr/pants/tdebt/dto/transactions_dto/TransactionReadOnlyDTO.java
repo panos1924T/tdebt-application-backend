@@ -20,8 +20,6 @@ public record TransactionReadOnlyDTO(
 
         String debtorName,
 
-        String correctedTransactionUuid,
-
-        Instant createdAt
+        String correctedTransactionUuid
 ) {
 }

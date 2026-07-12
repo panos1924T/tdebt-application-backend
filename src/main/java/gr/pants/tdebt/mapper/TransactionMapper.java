@@ -16,8 +16,7 @@ public class TransactionMapper {
                 transaction.getAction().toString(),
                 transaction.getNote(),
                 transaction.getDebt().getDebtorName(),
-                transaction.getCorrectedTransaction() != null ? transaction.getCorrectedTransaction().getUuid().toString() : null,
-                transaction.getCreatedAt()
+                transaction.getCorrectedTransaction() != null ? transaction.getCorrectedTransaction().getUuid().toString() : null
         );
     }
 

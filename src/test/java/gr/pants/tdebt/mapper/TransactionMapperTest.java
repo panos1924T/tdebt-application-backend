@@ -50,7 +50,6 @@ class TransactionMapperTest {
             transaction.setAction(TransactionAction.INCREASE);
             transaction.setNote("Initial loan");
             transaction.setDebt(debt);
-            transaction.setCreatedAt(createdAt);
             // correctedTransaction is deliberately left null
 
             // WHEN
@@ -63,7 +62,6 @@ class TransactionMapperTest {
             assertThat(dto.action()).isEqualTo("INCREASE");
             assertThat(dto.note()).isEqualTo("Initial loan");
             assertThat(dto.debtorName()).isEqualTo("Maria Papadopoulou");
-            assertThat(dto.createdAt()).isEqualTo(createdAt);
             // The one branch this mapper actually has to get right:
             assertThat(dto.correctedTransactionUuid()).isNull();
         }
