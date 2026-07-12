@@ -71,7 +71,7 @@ Create a `.env` file in the project root (or copy `.env.example`) and fill:
 
 ```env
 DB_HOST=localhost
-DB_PORT=5433
+DB_PORT=your_db_port
 DB_NAME=your_db_name
 DB_USERNAME=your_db_user
 DB_PASSWORD=your_db_password
@@ -85,7 +85,7 @@ ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=Admin123!
 
 # used by docker-compose
-CURRENT_DB_SCHEMA=tdebtapp
+CURRENT_DB_SCHEMA=your_schema_name
 SPRING_PROFILES_ACTIVE=default
 ```
 
@@ -94,7 +94,6 @@ SPRING_PROFILES_ACTIVE=default
 - `JWT_SECRET_KEY` must be a **Base64-encoded** secret.
 - `JWT_EXPIRATION` is in **milliseconds** (example: `86400000` = 24h).
 - `ADMIN_EMAIL` / `ADMIN_PASSWORD` are optional; if set, admin seeding runs at startup.
-- App schema is `tdebtapp`.
 
 ---
 
