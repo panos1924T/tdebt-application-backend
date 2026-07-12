@@ -37,6 +37,7 @@ out/
 .vscode/
 
 .env
+.env.docker
 
 *.log
 logs/
