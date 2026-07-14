@@ -134,10 +134,11 @@ public class TransactionRestController {
     @GetMapping("/transactions")
     public ResponseEntity<Page<TransactionReadOnlyDTO>> getPaginatedUserTransactions(
             @AuthenticationPrincipal User principal,
+            @ModelAttribute TransactionFilters filters,
             @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable
     ) {
 
-        Page<TransactionReadOnlyDTO> transactionPage = transactionService.getPaginatedTransactions(
+        Page<TransactionReadOnlyDTO> transactionPage = transactionService.getPaginatedTransactions(filters,
                 pageable, principal.getUuid());
         return ResponseEntity.ok(transactionPage);
     }

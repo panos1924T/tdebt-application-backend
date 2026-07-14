@@ -21,7 +21,4 @@ public interface TransactionRepository
     boolean existsByDebt_Uuid(UUID debtUuid);
 
     boolean existsByCorrectedTransaction_Id(Long originalTransactionId);
-
-    @Query("SELECT t FROM Transaction t WHERE t.debt.user.uuid = :userUuid")
-    Page<Transaction> findAllByDebtUserUuid(@Param("userUuid") UUID userUuid, Pageable pageable);
 }

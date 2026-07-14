@@ -154,12 +154,14 @@ public class TransactionServiceImpl implements ITransactionService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TransactionReadOnlyDTO> getPaginatedTransactions(Pageable pageable, UUID userUuid) {
+    public Page<TransactionReadOnlyDTO> getPaginatedTransactions(TransactionFilters filters, Pageable pageable, UUID userUuid) {
 
-        Page<Transaction> transactionsPage = transactionRepository.findAllByDebtUserUuid(userUuid, pageable);
+        var specification = TransactionSpecification.buildForUser(filters, userUuid);
 
-        log.info("Paginated Transactions were returned successfully with page={} and size={}", pageable.getPageNumber(),
-                pageable.getPageSize());
+        Page<Transaction> transactionsPage = transactionRepository.findAll(specification, pageable);
+
+        log.info("Filtered and paginated Transactions were returned successfully with page={} and size={}",
+                pageable.getPageNumber(), pageable.getPageSize());
         return transactionsPage.map(transactionMapper::toReadOnlyDTO);
     }
 

@@ -26,6 +26,6 @@ public interface ITransactionService {
     );
 
     Page<TransactionReadOnlyDTO> getPaginatedTransactions(
-            Pageable pageable, UUID userUuid
+            TransactionFilters filters, Pageable pageable, UUID userUuid
     );
 }
