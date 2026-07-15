@@ -6,10 +6,6 @@ public record UserReadOnlyDTO(
 
         String uuid,
 
-        String email,
-
-        Instant createdAt,
-
-        Instant updatedAt
+        String email
 ) {
 }
