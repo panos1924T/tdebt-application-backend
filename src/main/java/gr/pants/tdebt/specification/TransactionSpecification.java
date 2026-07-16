@@ -45,12 +45,26 @@ public class TransactionSpecification {
                         criteriaBuilder.lessThanOrEqualTo(root.get("date"), toDate);
     }
 
+    private static Specification<Transaction> isLatestInChain() {
+        return (root, query, criteriaBuilder) -> {
+            // Subquery: does ANY transaction reference `root` as its correctedTransaction?
+            assert query != null;
+            jakarta.persistence.criteria.Subquery<Long> subquery = query.subquery(Long.class);
+            var correctionRoot = subquery.from(Transaction.class);
+            subquery.select(correctionRoot.get("id"));
+            subquery.where(criteriaBuilder.equal(correctionRoot.get("correctedTransaction"), root));
+
+            return criteriaBuilder.not(criteriaBuilder.exists(subquery));
+        };
+    }
+
     public static Specification<Transaction> build(TransactionFilters filters, UUID debtUuid) {
         return Specification
                 .where(belongsToDebt(debtUuid))
                 .and(hasAction(filters.action()))
                 .and(dateFrom(filters.fromDate()))
-                .and(dateTo(filters.toDate()));
+                .and(dateTo(filters.toDate()))
+                .and(isLatestInChain());
     }
 
     public static Specification<Transaction> buildForUser(TransactionFilters filters, UUID userUuid) {
@@ -59,6 +73,7 @@ public class TransactionSpecification {
                 .and(hasDebtType(filters.debtType()))
                 .and(hasAction(filters.action()))
                 .and(dateFrom(filters.fromDate()))
-                .and(dateTo(filters.toDate()));
+                .and(dateTo(filters.toDate()))
+                .and(isLatestInChain());
     }
 }

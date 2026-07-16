@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface TransactionRepository
@@ -21,4 +23,7 @@ public interface TransactionRepository
     boolean existsByDebt_Uuid(UUID debtUuid);
 
     boolean existsByCorrectedTransaction_Id(Long originalTransactionId);
+
+    @Query("SELECT DISTINCT t.correctedTransaction.id FROM Transaction t WHERE t.correctedTransaction.id IN :ids")
+    Set<Long> findCorrectedTransactionIdsIn(@Param("ids") Collection<Long> ids);
 }

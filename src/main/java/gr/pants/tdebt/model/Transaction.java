@@ -30,6 +30,13 @@ public class Transaction extends AbstractAuditEntity{
     @Column(nullable = false)
     private TransactionAction action;
 
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal resultingAmount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionAction resultingAction;
+
     private String note;
 
     @ManyToOne(fetch = FetchType.LAZY)

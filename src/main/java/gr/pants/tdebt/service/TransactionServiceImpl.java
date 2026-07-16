@@ -3,7 +3,6 @@ package gr.pants.tdebt.service;
 import gr.pants.tdebt.core.enums.DebtStatus;
 import gr.pants.tdebt.core.enums.TransactionAction;
 import gr.pants.tdebt.core.exceptions.EntityNotFoundException;
-import gr.pants.tdebt.core.exceptions.InsufficientBalanceException;
 import gr.pants.tdebt.core.exceptions.InvalidArgumentException;
 import gr.pants.tdebt.core.exceptions.NegativeAmountException;
 import gr.pants.tdebt.core.filters.TransactionFilters;
@@ -24,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -49,6 +50,8 @@ public class TransactionServiceImpl implements ITransactionService {
         }
 
         Transaction transaction = transactionMapper.toEntity(insertDTO);
+        transaction.setResultingAmount(transaction.getAmount());
+        transaction.setResultingAction(transaction.getAction());
 
         BigDecimal amount = transaction.getAmount();
         if (transaction.getAction() == TransactionAction.INCREASE) {
@@ -67,7 +70,7 @@ public class TransactionServiceImpl implements ITransactionService {
 
         log.info("Transaction with UUID: {} added to Debt with UUID: {}. New Balance: {}",
                 savedTransaction.getUuid(), debtUuid, debt.getBalance());
-        return transactionMapper.toReadOnlyDTO(savedTransaction);
+        return transactionMapper.toReadOnlyDTO(savedTransaction, true);
     }
 
     @Override
@@ -87,8 +90,12 @@ public class TransactionServiceImpl implements ITransactionService {
                         "Original transaction with uuid=" + transUuid + " not found on this debt"));
 
         // Calculating Delta (new contribution - original contribution) that matches every scenario.
-        BigDecimal originalContribution = original.getAction() == TransactionAction.INCREASE
-                ? original.getAmount() : original.getAmount().negate();
+        // IMPORTANT: use resultingAmount/resultingAction, not amount/action.
+        // original.amount/action is only the delta this row itself represents
+        // (for a correction row) — using it here would anchor the calculation to
+        // the wrong base value when correcting a correction (2nd+ level chain bug).
+        BigDecimal originalContribution = original.getResultingAction() == TransactionAction.INCREASE
+                ? original.getResultingAmount() : original.getResultingAmount().negate();
         BigDecimal newContribution = updateDTO.action() == TransactionAction.INCREASE
                 ? updateDTO.amount() : updateDTO.amount().negate();
         BigDecimal delta = newContribution.subtract(originalContribution);
@@ -99,7 +106,7 @@ public class TransactionServiceImpl implements ITransactionService {
             original.setNote(updateDTO.note());
             Transaction saved = transactionRepository.save(original);
             log.info("Metadata-only update on Transaction UUID: {}", saved.getUuid());
-            return transactionMapper.toReadOnlyDTO(saved);
+            return transactionMapper.toReadOnlyDTO(saved, !transactionRepository.existsByCorrectedTransaction_Id(saved.getId()));
         }
 
         // Anti-chaining check. editing only the last edited version.
@@ -116,6 +123,8 @@ public class TransactionServiceImpl implements ITransactionService {
         correction.setAction(delta.signum() > 0 ? TransactionAction.INCREASE : TransactionAction.DECREASE);
         correction.setNote(updateDTO.note());
         correction.setCorrectedTransaction(original);
+        correction.setResultingAmount(updateDTO.amount());
+        correction.setResultingAction(updateDTO.action());
         correction.setDebt(debt);
 
         debt.setBalance(resultingBalance);
@@ -124,7 +133,7 @@ public class TransactionServiceImpl implements ITransactionService {
 
         log.info("Correction UUID: {} applied to Original UUID: {}. Delta: {}. New Balance: {}",
                 saved.getUuid(), original.getUuid(), delta, debt.getBalance());
-        return transactionMapper.toReadOnlyDTO(saved);
+        return transactionMapper.toReadOnlyDTO(saved, true);
     }
 
     @Override
@@ -134,7 +143,8 @@ public class TransactionServiceImpl implements ITransactionService {
         Transaction transaction = getTransactionAndVerifyOwnership(transUuid, userUuid);
 
         log.info("Transaction with uuid={}, returned successfully", transUuid);
-        return transactionMapper.toReadOnlyDTO(transaction);
+        boolean isLatest = !transactionRepository.existsByCorrectedTransaction_Id(transaction.getId());
+        return transactionMapper.toReadOnlyDTO(transaction, isLatest);
     }
 
     @Override
@@ -146,10 +156,12 @@ public class TransactionServiceImpl implements ITransactionService {
 
         var specification = TransactionSpecification.build(filters, debtUuid);
 
+        Page<Transaction> page = transactionRepository.findAll(specification, pageable);
         log.info("Filtered and paginated Transactions were returned successfully with page={} and size={}", pageable.getPageNumber(),
                 pageable.getPageSize());
+
         return transactionRepository.findAll(specification, pageable)
-                .map(transactionMapper::toReadOnlyDTO);
+                .map(t -> transactionMapper.toReadOnlyDTO(t, true));
     }
 
     @Override
@@ -162,7 +174,9 @@ public class TransactionServiceImpl implements ITransactionService {
 
         log.info("Filtered and paginated Transactions were returned successfully with page={} and size={}",
                 pageable.getPageNumber(), pageable.getPageSize());
-        return transactionsPage.map(transactionMapper::toReadOnlyDTO);
+
+        return transactionRepository.findAll(specification, pageable)
+                .map(t -> transactionMapper.toReadOnlyDTO(t, true));
     }
 
     private Transaction getTransactionAndVerifyOwnership(UUID transactionUuid, UUID userUuid) {

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TransactionMapper {
 
-    public TransactionReadOnlyDTO toReadOnlyDTO(Transaction transaction) {
+    public TransactionReadOnlyDTO toReadOnlyDTO(Transaction transaction, boolean isLatestInChain) {
         return new TransactionReadOnlyDTO(
                 transaction.getUuid().toString(),
                 transaction.getDate(),
@@ -16,7 +16,10 @@ public class TransactionMapper {
                 transaction.getAction().toString(),
                 transaction.getNote(),
                 transaction.getDebt().getDebtorName(),
-                transaction.getCorrectedTransaction() != null ? transaction.getCorrectedTransaction().getUuid().toString() : null
+                transaction.getCorrectedTransaction() != null ? transaction.getCorrectedTransaction().getUuid().toString() : null,
+                transaction.getResultingAmount(),
+                transaction.getResultingAction().toString(),
+                isLatestInChain
         );
     }
 

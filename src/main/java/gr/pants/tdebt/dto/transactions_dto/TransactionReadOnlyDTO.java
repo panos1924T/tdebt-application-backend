@@ -20,6 +20,12 @@ public record TransactionReadOnlyDTO(
 
         String debtorName,
 
-        String correctedTransactionUuid
+        String correctedTransactionUuid,
+
+        BigDecimal resultingAmount,
+
+        String resultingAction,
+
+        boolean isLatestInChain
 ) {
 }
