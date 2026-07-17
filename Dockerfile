@@ -1,8 +1,9 @@
 # Stage 1: Build
-FROM gradle:8.10-jdk21 AS build
+FROM amazoncorretto:21 AS build
 WORKDIR /app
 COPY . .
-RUN gradle build -x test --no-daemon
+RUN chmod +x ./gradlew
+RUN ./gradlew build -x test --no-daemon
 
 # Stage 2: Run
 FROM amazoncorretto:21
