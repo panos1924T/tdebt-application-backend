@@ -5,6 +5,10 @@ It provides authentication/authorization, user management, debt tracking, and tr
 
 ---
 
+## T-debt frontend link:   https://github.com/panos1924T/tdebt-application-frontend
+
+---
+
 ## What this backend does
 
 - Registers and authenticates users with JWT
