@@ -35,3 +35,6 @@ spring:
 
   allowed:
     origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
+
+  server:
+    port: ${PORT:8080}
