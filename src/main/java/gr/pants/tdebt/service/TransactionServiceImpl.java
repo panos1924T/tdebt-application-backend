@@ -160,7 +160,7 @@ public class TransactionServiceImpl implements ITransactionService {
         log.info("Filtered and paginated Transactions were returned successfully with page={} and size={}", pageable.getPageNumber(),
                 pageable.getPageSize());
 
-        return transactionRepository.findAll(specification, pageable)
+        return page
                 .map(t -> transactionMapper.toReadOnlyDTO(t, true));
     }
 
