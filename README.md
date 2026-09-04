@@ -1,286 +1,207 @@
 # T-Debt Backend
 
-REST API backend for the T-Debt application, built with Spring Boot.  
-It provides authentication/authorization, user management, debt tracking, and transaction ledger operations with PostgreSQL persistence and Flyway migrations.
+REST API for tracking debts and transactions, built with Java 21 and Spring Boot.
 
----
+[Frontend repository](https://github.com/panos1924T/tdebt-application-frontend)
 
-## T-debt frontend link:   https://github.com/panos1924T/tdebt-application-frontend
+## Features
 
----
-
-## What this backend does
-
-- Registers and authenticates users with JWT
-- Applies role/capability-based authorization (ADMIN / USER)
-- Manages debts (create, update, list, archive/unarchive, delete)
-- Manages debt transactions (create, update via correction record, list)
-- Uses soft-delete for users and debts
-- Returns structured validation and error responses
-- Seeds an admin user from environment variables (optional)
-
----
-
-## Implemented service layer (brief)
-
-- **AuthenticationService**: validates credentials and issues JWT tokens
-- **JwtService**: token generation and validation
-- **CustomUserDetailsService**: loads user + role/capabilities for Spring Security
-- **UserServiceImpl**: registration, update/delete, paginated retrieval with access control
-- **DebtServiceImpl**: debt CRUD, ownership checks, status toggle, filtered pagination
-- **TransactionServiceImpl**: transaction creation/update, balance recalculation, correction-chain logic
-- **AdminSeeder**: creates initial admin user on startup (when env vars are provided)
-
----
+- User registration and JWT authentication.
+- Role and capability-based authorization (ADMIN / USER).
+- Debt creation, updates, filtering, pagination, and archiving.
+- Transaction tracking with automatic debt balance updates.
+- Transaction corrections that preserve the financial history.
+- Soft deletion of users and debts.
+- Ownership checks and structured validation/error responses.
+- Initial admin account seeding from configuration.
 
 ## Tech stack
 
-- **Language:** Java 21
-- **Framework:** Spring Boot (Web MVC, Validation, Security, Data JPA)
-- **Auth:** JWT (jjwt)
-- **Database:** PostgreSQL
-- **Migrations:** Flyway
-- **Build tool:** Gradle (Kotlin DSL)
-- **Utilities:** Lombok, dotenv-java
-- **Testing:** JUnit + Spring test starters + JaCoCo
+Java 21 · Spring Boot · Spring Security · Spring Data JPA · PostgreSQL · Flyway · Gradle Kotlin DSL · Lombok · dotenv-java · JUnit · Mockito · JaCoCo
 
----
+## Local setup: build and run
 
-## Prerequisites
+Follow these steps in order. PostgreSQL must be available **before the build**, because the build includes a Spring context test that connects to the database and runs Flyway migrations.
 
-Install the following on your machine:
+### 1. Prerequisites and clone
 
-1. **Git**
-2. **JDK 21**
-3. **PostgreSQL** (for local non-docker run)
-4. **Docker + Docker Compose** (for containerized run)
-5. (Optional) **Postman/Insomnia** for API testing
+Install Git, JDK 21, and PostgreSQL. DBeaver or pgAdmin is optional for database administration.
 
-> Gradle does **not** need to be installed globally; the project uses the Gradle Wrapper (`gradlew` / `gradlew.bat`).
-
----
-
-## 1. Clone the project
+Gradle does not need to be installed separately: use the included Gradle Wrapper.
 
 ```bash
 git clone https://github.com/panos1924T/t-debt-application.git
 cd t-debt-application
 ```
 
----
+Run all commands below from this project directory.
 
-## 2. Configure environment variables
+### 2. Create a local database
 
-Create a `.env` file in the project root (or copy `.env.example`) and fill:
-
-```env
-DB_HOST=localhost
-DB_PORT=your_db_port
-DB_NAME=your_db_name
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_db_password
-
-JWT_SECRET_KEY=your_base64_secret_key
-JWT_EXPIRATION=86400000
-
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:4200
-
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=Admin123!
-
-# used by docker-compose
-CURRENT_DB_SCHEMA=your_schema_name
-SPRING_PROFILES_ACTIVE=default
-```
-
-### Notes
-
-- `JWT_SECRET_KEY` must be a **Base64-encoded** secret.
-- `JWT_EXPIRATION` is in **milliseconds** (example: `86400000` = 24h).
-- `ADMIN_EMAIL` / `ADMIN_PASSWORD` are optional; if set, admin seeding runs at startup.
-
----
-
-## 3. Local database setup (non-docker flow)
-
-Create the database first (schema and tables are handled by Flyway):
+Connect to your PostgreSQL server as an administrator, for example through DBeaver. Execute these statements separately, with auto-commit enabled:
 
 ```sql
-CREATE DATABASE your_db_name;
+CREATE USER tdebt_user WITH PASSWORD 'replace_with_your_password';
 ```
 
-Ensure DB user permissions are sufficient for schema/table migration.
+```sql
+CREATE DATABASE tdebt OWNER tdebt_user;
+```
 
----
+Replace the example password. If you already have a suitable database and user, use them instead of creating new ones.
 
-## 4. Build the backend (local)
+**Create only the database.** Flyway creates the configured schema and tables automatically. The application database user must have permission to create the schema; making that user the database owner covers this requirement for a new local database.
 
-### Windows
-```bash
+Use a dedicated local development/test database. The context test uses the configured database and may apply migrations and run startup initialization.
+
+### 3. Configure `.env`
+
+Create `.env` in the project root, next to `gradlew.bat`, or copy `.env.example` if available.
+
+```dotenv
+DB_HOST=localhost
+DB_PORT=5433
+DB_NAME=tdebt
+DB_USERNAME=tdebt_user
+DB_PASSWORD=replace_with_your_password
+CURRENT_DB_SCHEMA=tdebtapp
+
+JWT_SECRET_KEY=replace_with_your_base64_secret
+JWT_EXPIRATION=86400000
+
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=replace_with_a_strong_password
+
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:4200
+SPRING_PROFILES_ACTIVE=dev
+```
+
+- Set `DB_PORT` to the port of **your** PostgreSQL server. The application configuration defaults to `5433`; use `5432` if that is where your installation listens.
+- `DB_NAME`, `DB_USERNAME`, and `DB_PASSWORD` must match step 2.
+- `CURRENT_DB_SCHEMA` selects the schema for **both the application and Flyway**, including local runs. It is not a Docker-only setting.
+- `JWT_SECRET_KEY` must be a Base64-encoded secret suitable for the application's JWT signing algorithm.
+- `JWT_EXPIRATION` is in milliseconds: `86400000` is 24 hours.
+- Supply the admin values for the initial admin account. Use your own credentials.
+- Keep `.env` out of Git. Commit only a `.env.example` containing placeholders.
+
+The Flyway settings in `application.yaml` must use the same schema variable as the datasource:
+
+```yaml
+spring:
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    schemas: ${CURRENT_DB_SCHEMA}
+    default-schema: ${CURRENT_DB_SCHEMA}
+```
+
+These settings are part of the existing configuration; do not append a second `spring:` block.
+
+The variables must be available to both Gradle tests and the running application. If a command reports an unresolved placeholder, check the project's `.env` loading configuration or supply the variables in that terminal/IDE run configuration. Values configured only in an IDE run configuration are not automatically available to a separate terminal.
+
+### 4. Build and run tests
+
+**Windows**
+
+```powershell
 .\gradlew.bat clean build
 ```
 
-### macOS/Linux
+**macOS / Linux**
+
 ```bash
 ./gradlew clean build
 ```
 
-This compiles code, runs tests, and creates the jar in `build/libs/`.
+If the wrapper is not executable on macOS/Linux, run `chmod +x gradlew` first.
 
----
+A successful build compiles the application, runs the tests, and generates the JAR in `build/libs/`.
 
-## 5. Run the backend (local)
+During `contextLoads()`, Flyway applies pending SQL migrations from `src/main/resources/db/migration`. Hibernate then validates the database structure; `ddl-auto: validate` does not create tables itself.
 
-### Windows
-```bash
+### 5. Start the backend
+
+**Windows**
+
+```powershell
 .\gradlew.bat bootRun
 ```
 
-### macOS/Linux
+**macOS / Linux**
+
 ```bash
 ./gradlew bootRun
 ```
 
-Default base URL:
-- `http://localhost:8080`
+Default API base URL: `http://localhost:8080`.
 
----
+The backend provides API endpoints; run the frontend separately for the user interface. Stop the backend with `Ctrl+C`.
 
-## Docker build & run
+## Tests and coverage
 
-This project includes `Dockerfile` and `docker-compose.yml`.
+| Task | Windows | macOS / Linux |
+| --- | --- | --- |
+| Run tests | `.\gradlew.bat test` | `./gradlew test` |
+| Run tests and generate coverage | `.\gradlew.bat test jacocoTestReport` | `./gradlew test jacocoTestReport` |
 
-### A) Build app jar first (required by Dockerfile)
+Reports:
 
-### Windows
-```bash
-.\gradlew.bat clean build
-```
+- Tests: `build/reports/tests/test/index.html`
+- Coverage: `build/reports/jacoco/test/html/index.html`
 
-### macOS/Linux
-```bash
-./gradlew clean build
-```
+Tests include the application context, debt service, transaction service, and transaction mapper. The context test requires the configured PostgreSQL database.
 
-### B) Build Docker image manually
+## Docker
 
-```bash
-docker build -t tdebt-backend:latest .
-```
+The repository also includes `Dockerfile` and `docker-compose.yml` for containerized deployment. Docker and Docker Compose are only needed for this option.
 
-### C) Run full stack with Docker Compose (app + postgres)
+The existing Dockerfile requires a built application JAR. Complete the build above against an available database before building the image.
+
+Before starting Compose, check its environment and port mappings. The app container must connect to PostgreSQL using the database service name and its internal port; `localhost` inside the app container refers to the app container itself. Keep these settings separate from the host-based local setup above.
 
 ```bash
 docker compose up --build -d
 ```
 
-Stop:
+Stop the containers:
+
 ```bash
 docker compose down
 ```
 
-Stop and remove DB volume too:
-```bash
-docker compose down -v
-```
-
-### Docker ports
-
-- **API:** `8080:8080`
-- **PostgreSQL (container):** exposed as `5434` on host
-
----
+`docker compose down -v` also removes the Compose-managed database volume and its stored data.
 
 ## API overview
 
-### Public
-- `POST /api/v1/users`
-- `POST /api/v1/auth`
+Use the JWT returned by authentication as `Authorization: Bearer <token>` when calling protected endpoints. Access also depends on role, capabilities, and resource ownership.
 
-### Users
-- `PUT /api/v1/users/{uuid}`
-- `DELETE /api/v1/users/{uuid}`
-- `GET /api/v1/users/{uuid}?includeDeleted=false`
-- `GET /api/v1/users?includeDeleted=false&page=0&size=10&sort=email,asc`
+| Area | Method | Endpoint | Purpose |
+| --- | --- | --- | --- |
+| Public | POST | `/api/v1/users` | Register |
+| Public | POST | `/api/v1/auth` | Authenticate |
+| Users | GET | `/api/v1/users` | List users |
+| Users | GET / PUT / DELETE | `/api/v1/users/{uuid}` | Read, update, or delete a user |
+| Debts | POST / GET | `/api/v1/debts` | Create or list debts |
+| Debts | GET / PUT / DELETE | `/api/v1/debts/{debtUuid}` | Read, update, or delete a debt |
+| Debts | PATCH | `/api/v1/debts/{debtUuid}` | Toggle OPEN / ARCHIVED |
+| Transactions | POST / GET | `/api/v1/debts/{debtUuid}/transactions` | Create or list debt transactions |
+| Transactions | PUT | `/api/v1/debts/{debtUuid}/transactions/{transUuid}` | Update or correct a transaction |
+| Transactions | GET | `/api/v1/transactions/{transUuid}` | Read a transaction |
+| Transactions | GET | `/api/v1/transactions` | List the user's transactions across debts |
 
-### Debts
-- `POST /api/v1/debts`
-- `PUT /api/v1/debts/{debtUuid}`
-- `PATCH /api/v1/debts/{debtUuid}` (toggle OPEN/ARCHIVED)
-- `DELETE /api/v1/debts/{debtUuid}`
-- `GET /api/v1/debts/{debtUuid}`
-- `GET /api/v1/debts?...filters...`
+List endpoints support pagination and applicable filters. Example: `/api/v1/transactions?page=0&size=10&sort=date,desc`.
 
-### Transactions
-- `POST /api/v1/debts/{debtUuid}/transactions`
-- `PUT /api/v1/debts/{debtUuid}/transactions/{transUuid}`
-- `GET /api/v1/transactions/{transUuid}`
-- `GET /api/v1/debts/{debtUuid}/transactions?...filters...`
-- `GET /api/v1/transactions?page=0&size=10&sort=date,desc`
+## Troubleshooting
 
----
+| Problem | What to check |
+| --- | --- |
+| Database connection fails | PostgreSQL is running; host, port, database name, and credentials are correct. |
+| `permission denied for database` during Flyway startup | The configured migration user has permission to create a schema in that database. |
+| `Schema validation: missing table` | Datasource and Flyway use the same `CURRENT_DB_SCHEMA`; inspect Flyway startup output and migration history. |
+| `Could not resolve placeholder` | The required variable is available to the process running the build or application. |
+| `compileTestJava` fails | Test source code does not compile. Read the compiler error before investigating database settings. |
+| `contextLoads()` fails | Open the test report and read the deepest `Caused by` message for the actual startup failure. |
+| HTTP 401 | The authentication token is missing, invalid, or expired. |
+| HTTP 403 | The request is denied by the application's access rules. |
 
-## Testing
-
-### Run all tests
-
-### Windows
-```bash
-.\gradlew.bat test
-```
-
-### macOS/Linux
-```bash
-./gradlew test
-```
-
-### Test classes currently implemented
-
-- `TdebtApplicationTests` (context load)
-- `DebtServiceImplTest`
-- `TransactionServiceImplTest`
-- `TransactionMapperTest`
-
-### Generate coverage report (JaCoCo)
-
-```bash
-./gradlew test jacocoTestReport
-```
-
-Windows:
-```bash
-.\gradlew.bat test jacocoTestReport
-```
-
-Coverage report:
-- `build/reports/jacoco/test/html/index.html`
-
----
-
-## Logging
-
-Runtime logs are written to:
-- `logs/all.log`
-- `logs/error.log`
-- `logs/tomcat.log`
-- `logs/hikari.log`
-- `logs/sql.log`
-
----
-
-## Important implementation notes
-
-- Flyway runs automatically at startup.
-- User and debt entities are soft-deleted.
-- Transaction updates may create correction entries to preserve ledger integrity.
-- Access control is enforced both at route level and service level (`@PreAuthorize`).
-
----
-
-## Troubleshooting (short)
-
-- **App fails on DB connect:** verify `DB_*` values and PostgreSQL availability.
-- **Flyway errors on startup:** check DB user permissions and schema state.
-- **401 Unauthorized:** token missing/invalid/expired.
-- **403 Forbidden:** authenticated user lacks required capability.
-- **Docker app fails on startup:** ensure `.env` includes all required values and the jar was built before `docker build`.
+Runtime logs are written under `logs/`.
