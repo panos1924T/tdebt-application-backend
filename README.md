@@ -30,8 +30,8 @@ Install Git, JDK 21, and PostgreSQL. DBeaver or pgAdmin is optional for database
 Gradle does not need to be installed separately: use the included Gradle Wrapper.
 
 ```bash
-git clone https://github.com/panos1924T/t-debt-application.git
-cd t-debt-application
+git clone https://github.com/panos1924T/tdebt-application-backend.git
+cd tdebt-application-backend
 ```
 
 Run all commands below from this project directory.
