@@ -153,23 +153,68 @@ Tests include the application context, debt service, transaction service, and tr
 
 ## Docker
 
-The repository also includes `Dockerfile` and `docker-compose.yml` for containerized deployment. Docker and Docker Compose are only needed for this option.
+The complete T-Debt application can be run with Docker Compose, including PostgreSQL, the Spring Boot backend, and the Angular frontend.
 
-The existing Dockerfile requires a built application JAR. Complete the build above against an available database before building the image.
+Docker and Docker Compose are required.
 
-Before starting Compose, check its environment and port mappings. The app container must connect to PostgreSQL using the database service name and its internal port; `localhost` inside the app container refers to the app container itself. Keep these settings separate from the host-based local setup above.
+Clone the backend and frontend repositories into the same parent directory:
 
 ```bash
-docker compose up --build -d
+git clone https://github.com/panos1924T/tdebt-application-backend.git
+git clone https://github.com/panos1924T/tdebt-application-frontend.git
+cd tdebt-application-backend
 ```
 
-Stop the containers:
+The directory structure should be:
+
+```text
+.
+├── tdebt-application-backend/
+└── tdebt-application-frontend/
+```
+
+Create the local environment file:
+
+```bash
+cp .env.example .env
+```
+
+Then build and start the complete application:
+
+```bash
+docker compose up -d --build
+```
+
+Docker Compose starts PostgreSQL, the Spring Boot backend, and the Angular frontend served by Nginx.
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+The default demo administrator configured in `.env.example` is:
+
+```text
+Email: admin@tdebt.local
+Password: Admin123!
+```
+
+The backend Dockerfile builds the application inside the Docker image, so a locally built JAR is not required.
+
+Stop the containers with:
 
 ```bash
 docker compose down
 ```
 
-`docker compose down -v` also removes the Compose-managed database volume and its stored data.
+The PostgreSQL data remains stored in its Docker volume. Running:
+
+```bash
+docker compose down -v
+```
+
+also deletes that database volume and its stored data.
 
 ## API overview
 
