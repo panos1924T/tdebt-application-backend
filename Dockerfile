@@ -1,5 +1,8 @@
 # Stage 1: Build
 FROM amazoncorretto:21 AS build
+
+RUN dnf install -y findutils && dnf clean all
+
 WORKDIR /app
 COPY . .
 RUN chmod +x ./gradlew
