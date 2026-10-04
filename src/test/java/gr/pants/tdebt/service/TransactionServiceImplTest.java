@@ -90,6 +90,8 @@ class TransactionServiceImplTest {
         transaction.setDate(LocalDate.of(2026, 7, 1));
         transaction.setAmount(amount);
         transaction.setAction(action);
+        transaction.setResultingAmount(amount);
+        transaction.setResultingAction(action);
         transaction.setDebt(debt);
         return transaction;
     }
@@ -111,7 +113,7 @@ class TransactionServiceImplTest {
             when(transactionMapper.toEntity(dto)).thenReturn(mapped);
             when(transactionRepository.save(any(Transaction.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
-            when(transactionMapper.toReadOnlyDTO(any(Transaction.class))).thenReturn(expected);
+            when(transactionMapper.toReadOnlyDTO(any(Transaction.class), eq(true))).thenReturn(expected);
 
             // WHEN
             TransactionReadOnlyDTO result = transactionService.saveTransaction(debtUuid, dto, userUuid);
@@ -135,7 +137,7 @@ class TransactionServiceImplTest {
             when(transactionMapper.toEntity(dto)).thenReturn(mapped);
             when(transactionRepository.save(any(Transaction.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
-            when(transactionMapper.toReadOnlyDTO(any(Transaction.class))).thenReturn(mock(TransactionReadOnlyDTO.class));
+            when(transactionMapper.toReadOnlyDTO(any(Transaction.class), eq(true))).thenReturn(mock(TransactionReadOnlyDTO.class));
 
             // WHEN
             transactionService.saveTransaction(debtUuid, dto, userUuid);
@@ -199,7 +201,7 @@ class TransactionServiceImplTest {
             when(transactionRepository.findByUuidAndDebt_Uuid(transUuid, debtUuid))
                     .thenReturn(Optional.of(original));
             when(transactionRepository.save(original)).thenReturn(original);
-            when(transactionMapper.toReadOnlyDTO(original)).thenReturn(mock(TransactionReadOnlyDTO.class));
+            when(transactionMapper.toReadOnlyDTO(original, true)).thenReturn(mock(TransactionReadOnlyDTO.class));
 
             // WHEN
             transactionService.updateTransaction(debtUuid, transUuid, dto, userUuid);
@@ -213,7 +215,7 @@ class TransactionServiceImplTest {
             assertThat(debt.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(500));
             verify(debtRepository, never()).save(any());
             // We never even need to ask "has this been corrected before" on the metadata-only path.
-            verify(transactionRepository, never()).existsByCorrectedTransaction_Id(any());
+            verify(transactionRepository).existsByCorrectedTransaction_Id(original.getId());
         }
 
         @Test
@@ -232,7 +234,7 @@ class TransactionServiceImplTest {
             when(transactionRepository.existsByCorrectedTransaction_Id(1L)).thenReturn(false);
             when(transactionRepository.save(any(Transaction.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
-            when(transactionMapper.toReadOnlyDTO(any(Transaction.class))).thenReturn(mock(TransactionReadOnlyDTO.class));
+            when(transactionMapper.toReadOnlyDTO(any(Transaction.class), eq(true))).thenReturn(mock(TransactionReadOnlyDTO.class));
 
             // WHEN
             transactionService.updateTransaction(debtUuid, transUuid, dto, userUuid);
@@ -334,7 +336,7 @@ class TransactionServiceImplTest {
 
             when(transactionRepository.findTransactionByUuidAndDebt_User_UuidAndDebt_DeletedFalse(transUuid, userUuid))
                     .thenReturn(Optional.of(transaction));
-            when(transactionMapper.toReadOnlyDTO(transaction)).thenReturn(expected);
+            when(transactionMapper.toReadOnlyDTO(transaction, true)).thenReturn(expected);
 
             // WHEN
             TransactionReadOnlyDTO result = transactionService.getTransactionByUuid(transUuid, userUuid);
@@ -385,7 +387,7 @@ class TransactionServiceImplTest {
                     .thenReturn(Optional.of(debt));
             when(transactionRepository.findAll(any(Specification.class), eq(pageable)))
                     .thenReturn(transactionPage);
-            when(transactionMapper.toReadOnlyDTO(any(Transaction.class))).thenReturn(mock(TransactionReadOnlyDTO.class));
+            when(transactionMapper.toReadOnlyDTO(any(Transaction.class), eq(true))).thenReturn(mock(TransactionReadOnlyDTO.class));
 
             // WHEN
             Page<TransactionReadOnlyDTO> result = transactionService

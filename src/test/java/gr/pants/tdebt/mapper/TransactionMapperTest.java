@@ -48,12 +48,14 @@ class TransactionMapperTest {
             transaction.setDate(LocalDate.of(2026, 7, 1));
             transaction.setAmount(BigDecimal.valueOf(150));
             transaction.setAction(TransactionAction.INCREASE);
+            transaction.setResultingAmount(BigDecimal.valueOf(150));
+            transaction.setResultingAction(TransactionAction.INCREASE);
             transaction.setNote("Initial loan");
             transaction.setDebt(debt);
             // correctedTransaction is deliberately left null
 
             // WHEN
-            TransactionReadOnlyDTO dto = transactionMapper.toReadOnlyDTO(transaction);
+            TransactionReadOnlyDTO dto = transactionMapper.toReadOnlyDTO(transaction, true);
 
             // THEN
             assertThat(dto.uuid()).isEqualTo(transactionUuid.toString());
@@ -80,12 +82,14 @@ class TransactionMapperTest {
             correction.setDate(LocalDate.of(2026, 7, 3));
             correction.setAmount(BigDecimal.valueOf(50));
             correction.setAction(TransactionAction.INCREASE);
+            correction.setResultingAmount(BigDecimal.valueOf(150));
+            correction.setResultingAction(TransactionAction.INCREASE);
             correction.setNote("Correction note");
             correction.setDebt(debt);
             correction.setCorrectedTransaction(original);
 
             // WHEN
-            TransactionReadOnlyDTO dto = transactionMapper.toReadOnlyDTO(correction);
+            TransactionReadOnlyDTO dto = transactionMapper.toReadOnlyDTO(correction, true);
 
             // THEN: this is the one conditional line in the mapper -
             // it must resolve to the ORIGINAL's uuid, not the correction's own.
